@@ -1,0 +1,51 @@
+model{                                                                            # program starts
+     for(i in 1:ns){                                                              # loop through all studies
+        
+      
+       r[i,1] ~ dbin(p[i,1],N[i,1])                                               # Binomial likelihood for TP counts
+       r[i,2] ~ dbin(p[i,2],N[i,2])                                               # Binomial likelihood for FP counts
+       
+       logit(p[i,1])<-delta[i,1]                                                  # model for linear predictor of sensitivity
+       logit(p[i,2])<-delta[i,2]                                                  # model for linear predictor of false positive fraction
+       
+       delta[i,1] ~ dnorm(theta[1],prec[1])                                       # random effects on sensitivity 
+       delta[i,2] ~ dnorm(condmean[i],condprec)                                   # random effects on FPF -conditional normal to allow for correlations between sensitivity and FPF
+       condmean[i] <- theta[2]+rho*(sd[2]/sd[1])*(delta[i,1]-theta[1])            # calculate conditional mean
+        
+       
+        }
+     
+
+ theta[1] ~ dlogis(0,1)#dnorm(0,0.0001)                                                       # hyper-prior for the mean of logit transformed sensitivity
+ theta[2] ~ dlogis(0,1)#dnorm(0,0.0001)                                                       # hyper-prior for the mean of logit transformed FPF
+
+ sd[1] ~ dunif(0,5)                                                              # hyper-prior on standard deviation of sensitivity
+ sd[2] ~ dunif(0,5)                                                              # hyper-prior on standard deviation of FPF
+
+ rho ~ dunif(-1,1)                                                                # hyper-prior of correlation between sensitivity and FPF  
+ 
+ prec[1] <- pow(sd[1],-2)                                                         # precision for sensitivity
+ prec[2] <- pow(sd[2],-2)                                                         # precision for FPF
+
+ condprec <- 1/((1-pow(rho,2))*pow(sd[2],2))                                      # calculate the conditional precision
+ sumtpr <- exp(theta[1])/(1+exp(theta[1]))                                        # summary sensitivity
+ sumfpr <- exp(theta[2])/(1+exp(theta[2]))                                        # summary FPF
+  spec <- 1-sumfpr                                                                 # calculate summary specificity
+ logitsp<-logit(spec)
+
+ beta <- log(sd[2]/sd[1])                                                         # beta parameter for HSROC model
+ Theta <- ((sqrt(sd[2]/sd[1]) )*theta[1]+(sqrt(sd[1]/sd[2]) )*theta[2])*(1/2)     # THETA threshold parameter for HSROC model
+  Lambda <- (sqrt(sd[2]/sd[1]) )*theta[1]-(sqrt(sd[1]/sd[2]) )*theta[2]            # LAMBDA accuracy parameter for HSROC model
+ vartheta <- (1/2)*(sd[1]*sd[2]+sd[1]*sd[2]*rho)                                   # variance of theta HSROC parameter
+ varalpha <- 2*(sd[1]*sd[2]-sd[1]*sd[2]*rho)                                       # variance of alpha HSROC parameter
+
+
+ 
+ predtpr ~  dnorm(theta[1],prec[1])                                               # logit sensitivity predictive value
+ predfpf ~  dnorm(condmeanpred,condprec)                                          # logit fpf predicitive value
+ condmeanpred <- theta[2]+rho*(sd[2]/sd[1])*(predtpr-theta[1])                    # predictive conditional mean
+ logit(pred_tpr) <- predtpr                                                       # predictive sensitivity
+ logit(pred_fpf) <- predfpf                                                       # predictive fpf
+ predspec <- 1-pred_fpf                                                           # predictive specificity
+predlambda<-(sqrt(sd[2]/sd[1]) )*predtpr-(sqrt(sd[1]/sd[2]) )*predfpf             # predictive Lambda
+}                                                                                 # program finishes
