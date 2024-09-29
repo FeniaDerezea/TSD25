@@ -5,7 +5,7 @@ library(R2WinBUGS);library(MASS);library(MCMCpack)
 require(mcmcplots)
 
 ### OC sensor
-data <- read.csv("ACD response_All FOB Gold_20072023.csv",na="NA",header = TRUE)
+data <- read.csv("FOBGold.csv",na="NA",header = TRUE)
 ## bring data in form needed for the model
 ns <- length(data$ID)
 Tc <- data$T
@@ -47,7 +47,34 @@ model1.sim <- bugs(data.names, inits1, model.file = "model_log_ind.txt", paramet
                    n.chains = 3, n.iter = 150000, n.burnin=50000, n.thin=5,  bugs.directory = winbugs.dir, debug=FALSE)
 
 print(model1.sim,3)
+################################################################################
+svg("posterior.svg", width = 16, height = 16, pointsize = 17) # open file to output 
+par(mfrow=c(2,2))
 
+plot(density(model1.sim$sims.list$sd[,1]),main=expression("Standard deviation of m"* mu*"1"),xlab = "x",ylab="f(x)",frame.plot =FALSE,cex.lab=1.2, cex.axis=1.1,cex.main=1.2,col="firebrick",lwd=2)
+grid(nx = NULL, ny = NULL,
+     lty = 6,      # Grid line type
+     col = "gray", # Grid line color
+     lwd = 1) 
+
+plot(density(model1.sim$sims.list$sd[,2]),main=expression("Standard deviation of m"* mu*"2"),xlab = "x",ylab="f(x)",frame.plot =FALSE,cex.lab=1.2, cex.axis=1.1,cex.main=1.2,col="firebrick",lwd=2)
+grid(nx = NULL, ny = NULL,
+     lty = 6,      # Grid line type
+     col = "gray", # Grid line color
+     lwd = 1) 
+
+plot(density(model1.sim$sims.list$sd[,3]),main=expression("Standard deviation of m"* sigma*"1"),xlab = "x",ylab="f(x)",frame.plot =FALSE,cex.lab=1.2, cex.axis=1.1,cex.main=1.2,col="firebrick",lwd=2)
+grid(nx = NULL, ny = NULL,
+     lty = 6,      # Grid line type
+     col = "gray", # Grid line color
+     lwd = 1) 
+
+plot(density(model1.sim$sims.list$sd[,4]),main=expression("Standard deviation of m"* sigma*"2"),xlab = "x",ylab="f(x)",frame.plot =FALSE,cex.lab=1.2, cex.axis=1.1,cex.main=1.2,col="firebrick",lwd=2)
+grid(nx = NULL, ny = NULL,
+     lty = 6,      # Grid line type
+     col = "gray", # Grid line color
+     lwd = 1) 
+dev.off()
 ################################################################################
 ### check linearity
 sens<-matrix(NA,ncol=4,nrow=ns)
@@ -379,7 +406,7 @@ coltp<-"red"
         
         mcmcplot(model3.sim)
         print(model3.sim,3)
- 
+
         ### summary sens and fpf for different thresholds ##############################
         nsims = length(model3.sim$sims.list$resdev)# total number of simulations
         m_mu <- m_sigma <- matrix(NA, nsims, 2)
