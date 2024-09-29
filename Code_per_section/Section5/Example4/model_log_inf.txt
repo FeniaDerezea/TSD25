@@ -53,10 +53,12 @@ for(r in 1:4){
 	#sd[r] ~ dunif(0,5)
 	prec[r] <- pow(sd[r], -2)
 	}	
-sd[1]~dlnorm(0.2118,0.2604)I(,3)
-sd[2]~dlnorm(-1.9123,1.1295)I(,3)
-sd[3]~dlnorm(-0.8517,0.2588)I(,1)
-sd[4]~dlnorm(-2.0442,0.9445)I(,1)
+#informative priors based on OC-Sensor
+sd[1]~dlnorm(0.2118, 14.75)#I(,3)
+sd[2]~dlnorm(-1.9123,0.79)#I(,3)
+sd[3]~dlnorm(-0.8517,14.93)#I(,1)
+sd[4]~dlnorm(-2.0442, 1.12)#I(,1)
+
 
 resdev <- sum(rd[])    # Total residual deviance
 }
