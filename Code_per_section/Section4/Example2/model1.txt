@@ -16,29 +16,29 @@ model{                                                                          
         }
      
 
- theta[1] ~ dlogis(0,1)#dnorm(0,0.0001)                                                       # hyper-prior for the mean of logit transformed sensitivity
- theta[2] ~ dlogis(0,1)#dnorm(0,0.0001)                                                       # hyper-prior for the mean of logit transformed FPF
+ theta[1] ~ dlogis(0,1)                                                      # prior for the mean logit(TPF)
+ theta[2] ~ dlogis(0,1)                                                       # prior for the mean logit(FPF)
 
- sd[1] ~ dunif(0,5)                                                              # hyper-prior on standard deviation of sensitivity
- sd[2] ~ dunif(0,5)                                                              # hyper-prior on standard deviation of FPF
+ sd[1] ~ dunif(0,5)                                                              # Prior for between-studies SD in logit(TPF)
+ sd[2] ~ dunif(0,5)                                                              # Prior for between-studies SD in logit(FPF)
 
- rho ~ dunif(-1,1)                                                                # hyper-prior of correlation between sensitivity and FPF  
+ rho ~ dunif(-1,1)                                                                # Prior for between-studies correlation   
  
- prec[1] <- pow(sd[1],-2)                                                         # precision for sensitivity
- prec[2] <- pow(sd[2],-2)                                                         # precision for FPF
+ prec[1] <- pow(sd[1],-2)                                                         # define logit(TPF) precision
+ prec[2] <- pow(sd[2],-2)                                                         # define logit(FPF) precision
 
- condprec <- 1/((1-pow(rho,2))*pow(sd[2],2))                                      # calculate the conditional precision
- sumtpr <- exp(theta[1])/(1+exp(theta[1]))                                        # summary sensitivity
- sumfpr <- exp(theta[2])/(1+exp(theta[2]))                                        # summary FPF
-  spec <- 1-sumfpr                                                                 # calculate summary specificity
- logitsp<-logit(spec)
+ condprec <- 1/((1-pow(rho,2))*pow(sd[2],2))                                      # calculate conditional precision
+ sumtpf <- exp(theta[1])/(1+exp(theta[1]))                                        # summary TPF
+ sumfpf <- exp(theta[2])/(1+exp(theta[2]))                                        # summary FPF
+  spec <- 1-sumfpf                                                                 # summary specificity
 
  beta <- log(sd[2]/sd[1])                                                         # beta parameter for HSROC model
  Theta <- ((sqrt(sd[2]/sd[1]) )*theta[1]+(sqrt(sd[1]/sd[2]) )*theta[2])*(1/2)     # THETA threshold parameter for HSROC model
   Lambda <- (sqrt(sd[2]/sd[1]) )*theta[1]-(sqrt(sd[1]/sd[2]) )*theta[2]            # LAMBDA accuracy parameter for HSROC model
  vartheta <- (1/2)*(sd[1]*sd[2]+sd[1]*sd[2]*rho)                                   # variance of theta HSROC parameter
  varalpha <- 2*(sd[1]*sd[2]-sd[1]*sd[2]*rho)                                       # variance of alpha HSROC parameter
-
+ sdtheta <- sqrt(vartheta)                                                         # standard deviation of theta HSROC parameter
+ sdalpha <- sqrt(varalpha)                                                         # standard deviation of alpha HSROC parameter
 
  
  predtpr ~  dnorm(theta[1],prec[1])                                               # logit sensitivity predictive value
@@ -47,5 +47,5 @@ model{                                                                          
  logit(pred_tpr) <- predtpr                                                       # predictive sensitivity
  logit(pred_fpf) <- predfpf                                                       # predictive fpf
  predspec <- 1-pred_fpf                                                           # predictive specificity
-predlambda<-(sqrt(sd[2]/sd[1]) )*predtpr-(sqrt(sd[1]/sd[2]) )*predfpf             # predictive Lambda
+ predlambda<-(sqrt(sd[2]/sd[1]) )*predtpr-(sqrt(sd[1]/sd[2]) )*predfpf             # predictive Lambda
 }                                                                                 # program finishes
