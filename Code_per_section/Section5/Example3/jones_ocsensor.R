@@ -5,7 +5,7 @@ library(R2WinBUGS);library(MASS);library(MCMCpack)
 require(mcmcplots)
 
 ### OC sensor
-data <- read.csv("All OC-Sensor_04052023.csv",na="NA",header = TRUE)
+data <- read.csv("OC-Sensor.csv",na="NA",header = TRUE)
 ## bring data in form needed for the model
 ns <- length(data$ID)
 Tc <- data$T
