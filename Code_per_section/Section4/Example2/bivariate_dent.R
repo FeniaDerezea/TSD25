@@ -25,7 +25,7 @@ data.names<-c(names(dat) ,'ns')
 
 #create vector with names of parameters to monitor
 #parameter.names <- c( 'theta','rho','sd','sumtpr','sumfpr','spec','Theta','delta','beta','predtpr','predfpf','logitsp','deltasp','Lambda','vartheta','varalpha')
-parameter.names <- c( 'predlambda','theta','rho','sd','sumtpr','sumfpr','delta','spec','Theta','beta','predtpr','predfpf','Lambda','vartheta','varalpha')
+parameter.names <- c( 'predlambda','theta','rho','sd','sumtpf','sumfpf','delta','spec','Theta','beta','predtpr','predfpf','Lambda','vartheta','varalpha','sdtheta','sdalpha')
 
 # defining the directory of WinBUGS
 winbugs.dir <- "C:/Users/cb22323/Downloads/winbugs143_unrestricted/winbugs14_full_patched/WinBUGS14/"
@@ -56,7 +56,7 @@ print(model2.sim,2)
 mu<-cbind(model2.sim$sims.list$theta[,1],-model2.sim$sims.list$theta[,2])
 tau<-cbind(model2.sim$sims.list$sd[,1],model2.sim$sims.list$sd[,2])
 rho<-matrix(-model2.sim$sims.list$rho,ncol=1)
-Summary_Se<-matrix(model2.sim$sims.list$sumtpr,ncol=1)
+Summary_Se<-matrix(model2.sim$sims.list$sumtpf,ncol=1)
 Summary_Sp<-matrix(model2.sim$sims.list$spec,ncol=1)
 se<-plogis(model2.sim$sims.list$delta[,,1])
 sp<-plogis(-model2.sim$sims.list$delta[,,2])
@@ -85,8 +85,8 @@ mcmc1<-model2.sim$sims.list$theta[,1]
 mcmc2<-model2.sim$sims.list$theta[,2]
 r<-cor(mcmc1,mcmc2)
 
-sens<-median(model2.sim$sims.list$sumtpr)
-fpf<-median(model2.sim$sims.list$sumfpr)
+sens<-median(model2.sim$sims.list$sumtpf)
+fpf<-median(model2.sim$sims.list$sumfpf)
 
 results_biv <- data.frame(
   mean0 = c( median(mcmc1) ), #logit sens
@@ -157,7 +157,7 @@ lines(ROCellipse2, lty = 2, lwd = 2, col = "blue")
 
 ###hsroc
 fpfsr<-seq(min(fpfs),max(fpfs),by=0.01)[1:100]
-nsims<-length(model2.sim$sims.list$sumtpr)
+nsims<-length(model2.sim$sims.list$sumtpf)
 beta<-meanalpha<-meanalphapred<-rep(NA,nsims)
 q<-y<-matrix(NA,ncol=length(fpfsr),nrow = nsims)
 qpred<-ypred<-matrix(NA,ncol=length(fpfsr),nrow = nsims)
