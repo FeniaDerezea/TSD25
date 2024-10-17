@@ -1,3 +1,9 @@
+################################################################################
+### This code produces the forest plot from Figure 2 ###########################
+################################################################################
+
+
+
 if (!require(pacman)) {install.packages("pacman"); library(pacman)}
 p_load(tidyverse,
        magrittr,
