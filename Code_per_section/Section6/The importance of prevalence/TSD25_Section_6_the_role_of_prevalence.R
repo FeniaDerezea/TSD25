@@ -160,10 +160,3 @@ legend(x = "topleft",          # Position
        pch = c(NA),
        lwd = c(3),bty = "n") 
 dev.off()
-
-####solve INB eq wrt prevalence ################################################
-prevroot<-function(prev,a){
-  (quantile(prev*( tpf*EDT + (1-tpf)*LDT) + (1-prev)*(fpf*UFI) - C,c(0.025))-(prev*LDT))-a
-}
-xmin <- uniroot(prevroot, c(-1E6, 1E6), tol = 0.0001, a = 0)
-
