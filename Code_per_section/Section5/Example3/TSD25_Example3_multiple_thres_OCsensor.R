@@ -144,10 +144,10 @@ for(k in 1:nsims){
 summ_fpr <- summ_tpr <- matrix(NA, m, 3)
 summ_fpr_pred <- summ_tpr_pred <- matrix(NA, m, 3)
 for(t in 1:m){
-  summ_fpr[t,] <- quantile(pr[,1,t], c(0.5, 0.025, 0.975))
-  summ_tpr[t,] <- quantile(pr[,2,t], c(0.5, 0.025, 0.975))
-  summ_fpr_pred[t,] <- quantile(pr_pred[,1,t], c(0.5, 0.025, 0.975))
-  summ_tpr_pred[t,] <- quantile(pr_pred[,2,t], c(0.5, 0.025, 0.975))
+  summ_fpr[t,] <- quantile(pr[,2,t], c(0.5, 0.025, 0.975))
+  summ_tpr[t,] <- quantile(pr[,1,t], c(0.5, 0.025, 0.975))
+  summ_fpr_pred[t,] <- quantile(pr_pred[,2,t], c(0.5, 0.025, 0.975))
+  summ_tpr_pred[t,] <- quantile(pr_pred[,1,t], c(0.5, 0.025, 0.975))
 }
 
 #### summary sense spec for each thres #########################################
@@ -194,10 +194,10 @@ for(k in 1:nsims){
 summ_fpr2 <- summ_tpr2 <- matrix(NA, m, 3)
 summ_fpr_pred2 <- summ_tpr_pred2 <- matrix(NA, m, 3)
 for(t in 1:m){
-  summ_fpr2[t,] <- quantile(pr2[,1,t], c(0.5, 0.025, 0.975))
-  summ_tpr2[t,] <- quantile(pr2[,2,t], c(0.5, 0.025, 0.975))
-  summ_fpr_pred2[t,] <- quantile(pr_pred2[,1,t], c(0.5, 0.025, 0.975))
-  summ_tpr_pred2[t,] <- quantile(pr_pred2[,2,t], c(0.5, 0.025, 0.975))
+  summ_fpr2[t,] <- quantile(pr2[,2,t], c(0.5, 0.025, 0.975))
+  summ_tpr2[t,] <- quantile(pr2[,1,t], c(0.5, 0.025, 0.975))
+  summ_fpr_pred2[t,] <- quantile(pr_pred2[,2,t], c(0.5, 0.025, 0.975))
+  summ_tpr_pred2[t,] <- quantile(pr_pred2[,1,t], c(0.5, 0.025, 0.975))
 }
 
 #### summary sense spec for each thres #########################################
