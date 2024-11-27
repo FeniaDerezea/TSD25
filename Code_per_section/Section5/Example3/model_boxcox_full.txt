@@ -1,0 +1,151 @@
+model{
+
+for(i in 1:ns){
+	for(j in 1:2){
+
+                n[i,j,1] <- N[i,j] 
+		pp[i,j,1] <- pr[i,j,1]
+                 
+
+
+		for(t in 2:Tc[i,j]){       
+			n[i,j,t] <- x[i,j,t-1]  		
+			pp[i,j,t] <-  pr[i,j,t] / pr[i,j,t-1]
+                        	 
+			}    
+	}
+
+		for(t in 1:Tc[i,1]){    
+		qq[i,t] <- (( pow(C[i,t], lambda) - 1 ) / lambda )*(1 - equals(lambda, 0)) 
+			 +  log(C[i,t])*equals(lambda, 0)  	# Box-Cox transformation
+                 # use the following line instead for the log-link version
+                 #qq[i,t] <- log(C[i,t])
+	}
+
+
+	for(j in 1:2){
+          
+		for(t in 1:Tc[i,j]){
+			x[i,j,t] ~ dbin(pp[i,j,t], n[i,j,t])  	     # Likelihood                              
+			d[i,j,t] <- (mu[i,j] - qq[i,t] ) / exp(s[i,j]) 
+			logit(pr[i,j,t]) <- min(10, max(-10, d[i,j,t]) )   # Note (3)
+
+			
+
+			}
+
+		}
+for(t in 1:Tc[i,2]){
+xhatf[i,t] <- pp[i,2,t]*n[i,2,t] 
+devf[i,t] <- 2*(x[i,2,t]*(log(x[i,2,t]) - log(xhatf[i,t])) + (n[i,2,t] - x[i,2,t])*(log(n[i,2,t] - x[i,2,t])     
+                                   - log(n[i,2,t] - xhatf[i,t])))  # Residual deviance contribution
+df[i,t]<-min(10, max(-10, d[i,2,t]) )
+
+}
+for(t in 1:Tc[i,1]){
+xhatt[i,t] <- pp[i,1,t]*n[i,1,t] 
+devt[i,t] <- 2*(x[i,1,t]*(log(x[i,1,t]) - log(xhatt[i,t])) + (n[i,1,t] - x[i,1,t])*(log(n[i,1,t] - x[i,1,t])     
+                                   - log(n[i,1,t] - xhatt[i,t])))  # Residual deviance contribution
+dt[i,t]<-min(10, max(-10, d[i,1,t]) )
+
+
+}
+
+
+rd[i] <- sum(devf[i,1:Tc[i,2]]) + sum(devt[i,1:Tc[i,1]])	# Residual deviance study i
+}
+
+
+
+resdev <- sum(rd[])    # Total residual deviance
+
+#########################
+# CORRELATION STRUCTURE # 
+#########################
+for(i in 1:ns){
+mu[i,1] <- param[i,1]
+mu[i,2] <- param[i,2] 
+s[i,1] <- param[i,3] 
+s[i,2] <- param[i,4]
+	
+for(p in 1:4){		
+		param[i,p] <- mean[p] + re[i,p]
+		re[i,p] ~ dnorm(cond.mean[i, p], cond.prec[p])
+		}   
+	
+	cond.mean[i,1] <- 0
+		for(p in 2:4){
+			cond.mean[i,p] <- inprod(product[p-1,1:(p-1)], re[i,1:(p-1)])
+			}
+		}
+		
+cond.prec[1] <- pow(V[1,1], -1)
+for(p in 2:4){
+	cond.prec[p] <- pow(F[p-1], -1)
+}
+
+for(p in 1:3){
+	for(q in 1:p){	
+		product[p,q] <- inprod(V[1:p, p+1], W[p,1:p, q])   
+	}
+F[p] <- V[p+1,p+1] - inprod(V[1:p, p+1], product[p,1:p]) 
+}
+
+W[1,1,1] <- 1/V[1,1]
+
+for(p in 2:3){
+		W[p,p,p] <- 1/F[p-1]
+for(i in 1:(p-1)){
+		W[p,i,p] <-  -inprod(W[(p-1),i,1:(p-1)], V[1:(p-1), p])/F[p-1]
+		W[p,p,i] <- W[p,i,p]
+for(j in 1:(p-1)){
+		W[p,i,j] <- W[p-1,i,j] + (W[p, i, p]*W[p,p, j]*F[p-1])
+		}
+	}
+}
+
+# PRIORS:
+for(p in 1:4){
+	mean[p] ~ dnorm(0, 0.0001)
+}
+
+# COVARIANCE MATRIX STRUCTURE
+# (can experiment with different forms of this...)
+for(p in 1:4){
+	for(q in 1:4){
+		var[p,q] <- sd[p]*sd[q]
+		V[p,q] <- rho[p,q]*var[p,q]
+		}
+		rho[p,p] <- 1
+		
+		sd[p] ~ dunif(0,5)
+	}	
+	
+	rho[1,2] <- rho_mu
+	rho[1,3] <- rho_mu0_sigma0
+	rho[1,4] <- rho_mu0_sigma1
+	rho[2,3] <- rho_mu1_sigma0
+	rho[2,4] <- rho_mu1_sigma1
+	rho[3,4] <- rho_sigma
+	
+	rho_mu ~ dunif(-1,1)
+	rho_mu0_sigma0 ~ dunif(-1,1)
+	rho_mu1_sigma1 ~ dunif(-1,1)
+	rho_mu0_sigma1 ~ dunif(-1,1)
+	rho_mu1_sigma0 ~ dunif(-1,1)
+	rho_sigma ~ dunif(-1,1)
+	
+	rho[2,1] <- rho[1,2]
+	rho[3,1] <- rho[1,3]
+	rho[4,1] <- rho[1,4]
+	rho[3,2] <- rho[2,3]
+	rho[4,2] <- rho[2,4]
+	rho[4,3] <- rho[3,4]
+
+lambda ~ dunif(-3,3)
+
+### predictive values #############################
+Prec[1:4,1:4]<-inverse(V[1:4,1:4])
+mupred[1:4] ~ dmnorm(mean[1:4],Prec[1:4,1:4])
+
+}
