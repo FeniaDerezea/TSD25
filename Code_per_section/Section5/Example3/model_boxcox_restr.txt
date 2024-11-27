@@ -1,0 +1,99 @@
+model{
+
+for(i in 1:ns){
+	for(j in 1:2){
+
+                n[i,j,1] <- N[i,j] 
+		p[i,j,1] <- pr[i,j,1] 
+
+		for(t in 2:Tc[i,j]){       
+			n[i,j,t] <- x[i,j,t-1]  		
+			p[i,j,t] <-  pr[i,j,t] / pr[i,j,t-1]	 
+			}    
+	}
+
+	for(t in 1:Tc[i,1]){    
+		q[i,t] <- (( pow(C[i,t], lambda) - 1 ) / lambda )*(1 - equals(lambda, 0)) 
+			 +  log(C[i,t])*equals(lambda, 0)  	# Box-Cox transformation
+                # use the below line for the log-link instead
+                # q[i,t] <- log(C[i,t])
+	}
+
+	for(j in 1:2){
+		for(t in 1:Tc[i,j]){
+			x[i,j,t] ~ dbin(p[i,j,t], n[i,j,t])  	     # Likelihood                              
+			d[i,j,t] <- (mu[i,j] - q[i,t] ) / s[i,j]
+			logit(pr[i,j,t]) <- min(10, max(-10, d[i,j,t]) )   # Note (3)
+
+						}
+		}
+
+for(t in 1:Tc[i,2]){
+xhatf[i,t] <- p[i,2,t]*n[i,2,t] 
+devf[i,t] <- 2*(x[i,2,t]*(log(x[i,2,t]) - log(xhatf[i,t])) + (n[i,2,t] - x[i,2,t])*(log(n[i,2,t] - x[i,2,t])     
+                                   - log(n[i,2,t] - xhatf[i,t])))  # Residual deviance contribution (diseased-free)
+df[i,t]<-min(10, max(-10, d[i,2,t]) )
+
+}
+for(t in 1:Tc[i,1]){
+xhatt[i,t] <- p[i,1,t]*n[i,1,t] 
+devt[i,t] <- 2*(x[i,1,t]*(log(x[i,1,t]) - log(xhatt[i,t])) + (n[i,1,t] - x[i,1,t])*(log(n[i,1,t] - x[i,1,t])     
+                                   - log(n[i,1,t] - xhatt[i,t])))  # Residual deviance contribution (diseased)
+dt[i,t]<-min(10, max(-10, d[i,1,t]) )
+
+
+}
+
+# Distributions of correlated random effects:
+mu[i,1] ~ dnorm(mean[1], prec[1])
+
+mu[i,2] ~ dnorm(cond.mean.mu[i], cond.prec.mu)
+cond.mean.mu[i] <- mean[2] + (rho_mu*sd[2]/sd[1])*(mu[i,1] - mean[1])
+
+
+for(j in 1:2){
+cond.mean.s[i,j] <- mean[j+2] + (rho_mu_sigma*sd[j+2]/sd[j])*(mu[i,j] - mean[j])
+logs[i,j] ~ dnorm(cond.mean.s[i,j], cond.prec.s[j])I(-5,)
+s[i,j] <- exp(logs[i,j])	
+}
+
+
+rdf[i] <- sum(devf[i,1:Tc[i,2]])
+rdt[i] <- sum(devt[i,1:Tc[i,1]])
+
+rd[i] <- rdf[i] + rdt[i] # Residual deviance study i
+}
+
+# Predictive distributions for random effects:
+mupred[1] ~ dnorm(mean[1], prec[1])
+cond.mean.mu.pred <- mean[2] + (rho_mu*sd[2]/sd[1])*(mupred[1] - mean[1])
+mupred[2] ~ dnorm(cond.mean.mu.pred, cond.prec.mu)
+
+
+for(j in 1:2){	
+	cond.mean.s.pred[j] <- mean[j+2] 
++ (rho_mu_sigma*sd[j+2]/sd[j])*(mupred[1] - mean[1])
+	logspred[j] ~ dnorm(cond.mean.s.pred[j], cond.prec.s[j])
+}
+
+# Priors:
+lambda ~ dunif(-3,3) # comment this out if log-link used
+for(r in 1:4){
+	mean[r] ~ dnorm(0, 0.001)
+	sd[r] ~ dunif(0,5)
+	prec[r] <- pow(sd[r], -2)
+	}	
+rho_mu ~ dunif(-1,1)
+rho_mu_sigma ~ dunif(-1,1)
+
+cond.var.mu <-  (1- pow(rho_mu,2))*pow(sd[2], 2)
+cond.prec.mu <- 1/cond.var.mu
+
+for(j in 1:2){
+	cond.var.s[j]<-  (1- pow(rho_mu_sigma,2))*pow(sd[j + 2], 2)
+	cond.prec.s[j] <- 1/cond.var.s[j]
+}
+
+
+resdev <- sum(rd[])    # Total residual deviance
+}
