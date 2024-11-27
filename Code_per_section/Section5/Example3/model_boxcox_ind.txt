@@ -1,0 +1,80 @@
+model{
+
+for(i in 1:ns){
+	for(j in 1:2){
+
+                n[i,j,1] <- N[i,j] 
+		p[i,j,1] <- pr[i,j,1] 
+
+		for(t in 2:Tc[i,j]){       # Note (1) (see below)
+			n[i,j,t] <- x[i,j,t-1]  		
+			p[i,j,t] <-  pr[i,j,t] / pr[i,j,t-1]	 
+			}    
+	}
+
+	 
+          for(t in 1:Tc[i,1]){ 
+		q[i,t] <- (( pow(C[i,t], lambda) - 1 ) / lambda )*(1 - equals(lambda, 0)) 
+			 +  log(C[i,t])*equals(lambda, 0)  	# Box-Cox transformation
+                 # use line below for the log-link version
+                 #q[i,t] <- log(C[i,t])
+	}
+
+	for(j in 1:2){
+		for(t in 1:Tc[i,j]){
+			x[i,j,t] ~ dbin(p[i,j,t], n[i,j,t])  	     # Likelihood                              
+			d[i,j,t] <- (mu[i,j] - q[i,t] ) / exp(s[i,j]) 
+			logit(pr[i,j,t]) <- min(10, max(-10, d[i,j,t]) )   
+
+						}
+		}
+
+for(t in 1:Tc[i,2]){
+xhatf[i,t] <- p[i,2,t]*n[i,2,t] 
+devf[i,t] <- 2*(x[i,2,t]*(log(x[i,2,t]) - log(xhatf[i,t])) + (n[i,2,t] - x[i,2,t])*(log(n[i,2,t] - x[i,2,t])     
+                                   - log(n[i,2,t] - xhatf[i,t])))  # Residual deviance contribution
+df[i,t]<-min(10, max(-10, d[i,2,t]) )
+
+}
+for(t in 1:Tc[i,1]){
+xhatt[i,t] <- p[i,1,t]*n[i,1,t] 
+devt[i,t] <- 2*(x[i,1,t]*(log(x[i,1,t]) - log(xhatt[i,t])) + (n[i,1,t] - x[i,1,t])*(log(n[i,1,t] - x[i,1,t])     
+                                   - log(n[i,1,t] - xhatt[i,t])))  # Residual deviance contribution
+dt[i,t]<-min(10, max(-10, d[i,1,t]) )
+
+
+}
+
+# Distributions of correlated random effects:
+mu[i,1] ~ dnorm(mean[1], prec[1])
+mu[i,2] ~ dnorm(mean[2], prec[2])
+
+s[i,1] ~ dnorm(mean[3], prec[3])
+
+s[i,2] ~ dnorm(mean[4], prec[4])
+
+
+rd[i] <- rdf[i] + rdt[i] # Residual deviance study i
+rdf[i] <- sum(devf[i,1:Tc[i,2]])
+rdt[i] <- sum(devt[i,1:Tc[i,1]])
+
+}
+
+# Predictive distributions for random effects:
+mupred[1] ~ dnorm(mean[1], prec[1])
+mupred[2] ~ dnorm(mean[2], prec[2])
+
+mupred[3] ~ dnorm(mean[3], prec[3])
+mupred[4] ~ dnorm(mean[4], prec[4])
+
+
+# Priors:
+lambda ~ dunif(-3,3) #comment this line out if log-link version is used
+for(r in 1:4){
+	mean[r] ~ dnorm(0, 0.001)
+	sd[r] ~ dunif(0,5)
+	prec[r] <- pow(sd[r], -2)
+	}	
+
+resdev <- sum(rd[])    # Total residual deviance
+}
