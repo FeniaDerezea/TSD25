@@ -1,0 +1,110 @@
+model{
+
+for(i in 1:ns){
+	for(j in 1:2){
+
+                n[i,j,1] <- N[i,j] 
+		p[i,j,1] <- pr[i,j,1] 
+
+		for(t in 2:Tc[i,j]){       
+			n[i,j,t] <- x[i,j,t-1]  		
+			p[i,j,t] <-  pr[i,j,t] / pr[i,j,t-1]	 
+			}    
+	}
+
+	for(t in 1:Tc[i,2]){    
+		q[i,t] <- (( pow(C[i,t], lambda) - 1 ) / lambda )*(1 - equals(lambda, 0)) 
+			 +  log(C[i,t])*equals(lambda, 0)  	# Box-Cox transformation
+	}
+
+	for(j in 1:2){
+		for(t in 1:Tc[i,j]){
+			x[i,j,t] ~ dbin(p[i,j,t], n[i,j,t])  	     # Likelihood                              
+			d[i,j,t] <- (mu[i,j] - q[i,t] ) / exp(s[i,j]) 
+			logit(pr[i,j,t]) <- min(10, max(-10, d[i,j,t]) )   
+
+						}
+		}
+
+# Distributions of correlated random effects:
+mu[i,1] ~ dnorm(mean[1], prec[1])
+mu[i,2] ~ dnorm(mean[2], prec[2])
+
+s[i,1] ~ dnorm(mean[3], prec[3])
+
+s[i,2] ~ dnorm(mean[4], prec[4])
+}
+
+# Predictive distributions for random effects:
+mupred[1] ~ dnorm(mean[1], prec[1])
+mupred[2] ~ dnorm(mean[2], prec[2])
+
+mupred[3] ~ dnorm(mean[3], prec[3])
+mupred[4] ~ dnorm(mean[4], prec[4])
+
+# Priors:
+lambda ~ dunif(-3,3)
+for(r in 1:4){
+	mean[r] ~ dnorm(0, 0.001)
+	sd[r] ~ dunif(0,5)
+	prec[r] <- pow(sd[r], -2)
+	}	
+
+#predictive values at thres 10
+bthr <- (( pow(10, lambda) - 1 ) / lambda )*(1 - equals(lambda, 0)) +  log(10)*equals(lambda, 0)
+# use the line below instead for thres 100
+#bthr <- (( pow(100, lambda) - 1 ) / lambda )*(1 - equals(lambda, 0)) +  log(100)*equals(lambda, 0)
+
+for (j in 1:2){
+
+#summary at thres10
+logit(pr_sum[j])<-(mean[j]-bthr)/exp(mean[j+2])
+
+}
+
+### bivariate model
+  for(k in 1:nsb){                                                              # loop through all studies
+        
+      
+       rc[k,1] ~ dbin(pb[k,1],Nb[k,1])                                               # Binomial likelihood for TP counts
+       rc[k,2] ~ dbin(pb[k,2],Nb[k,2])                                               # Binomial likelihood for FP counts
+       
+       logit(pb[k,1])<-delta[k,1]                                                  # model for linear predictor of sensitivity
+       logit(pb[k,2])<-delta[k,2]                                                  # model for linear predictor of false positive fraction
+       deltasp[k]<-logit(1-pb[k,2])
+
+       delta[k,1] ~ dnorm(theta[1],precb[1])                                       # random effects on sensitivity 
+       delta[k,2] ~ dnorm(condmeanb[k],condprecb)                                   
+       condmeanb[k] <- theta[2]+rhob*(sdb[2]/sdb[1])*(delta[k,1]-theta[1])            # calculate conditional mean
+        
+       
+        }
+     
+
+ theta[1] ~ dnorm(0,0.0001)                                                       # hyper-prior for the mean of logit transformed sensitivity
+ theta[2] ~ dnorm(0,0.0001)                                                       # hyper-prior for the mean of logit transformed FPF
+
+ sdb[1] ~ dunif(0,5)                                                              # hyper-prior on standard deviation of sensitivity
+ sdb[2] ~ dunif(0,5)                                                              # hyper-prior on standard deviation of FPF
+
+ rhob ~ dunif(-1,1)                                                                # hyper-prior of correlation between sensitivity and FPF  
+ 
+ precb[1] <- pow(sdb[1],-2)                                                         # precision for sensitivity
+ precb[2] <- pow(sdb[2],-2)                                                         # precision for FPF
+
+ condprecb <- 1/((1-pow(rhob,2))*pow(sdb[2],2))                                      # calculate the conditional precision
+ sumtprb <- exp(theta[1])/(1+exp(theta[1]))                                        # summary sensitivity
+ sumfprb <- exp(theta[2])/(1+exp(theta[2]))                                        # summary FPF
+
+
+ 
+
+
+
+## calculate the probabilities needed for the pvalue 
+
+
+pvalsens<-step(sumtprb-pr_sum[1])
+pvalfpf<-step(sumfprb-pr_sum[2])
+
+}
