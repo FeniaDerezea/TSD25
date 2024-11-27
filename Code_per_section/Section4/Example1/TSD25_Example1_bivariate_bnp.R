@@ -42,7 +42,7 @@ inits1<-list(
 
 #run model through WinBUGS and safe output
 #model1.txt contains the WinBUGS code for the bivariate model and should be saved in your current working directory
-model1.sim <- bugs( data.names, inits1, model.file = "model1.txt", parameters = parameter.names,
+model1.sim <- bugs( data.names, inits1, model.file = "model_bivariate.txt", parameters = parameter.names,
                     n.chains = n.chain, n.iter = n.iters, n.burnin=n.burn, n.thin=n.th,  bugs.directory = winbugs.dir, debug=FALSE)
 
 # print model summary rounded to 3 decimals
@@ -144,7 +144,7 @@ results_biv <- data.frame(
   
 )
 #the plot will be saved in the working directory unless otherwise specified within the svg command
-svg("roc_logit.svg", width = 14, height = 7, pointsize = 14) 
+svg("roc_logit2.svg", width = 14, height = 7, pointsize = 14) 
 par(mfrow=c(1,2))
 cex <- 1.2
 plot(fpfs, senss,col="white",  pch = 20, xlim = c(0,1), ylim = c(0,1),
@@ -202,7 +202,7 @@ ROCellipse2[,2] <- exp(logitellipse2[,1]) / (1 + exp(logitellipse2[,1]))
 lines(ROCellipse2, lty = 2, lwd = 2, col = "blue") 
 
 legend(x = "bottomright", cex = 1.2,          # Position
-       legend = c("Observed (TPF, FPF)","Summary (TPF,FPF)", "95% credible ellipse","95% prediction ellipse"),  # Legend texts
+       legend = c("Observed (TPF, FPF)","Summary (TPF,FPF)", "95% credible region","95% prediction region"),  # Legend texts
        lty = c(NA,NA,2,2),           # Line types
        col = c(mycol, "red","red","blue"), # Line colors
        pch = c(20,17, NA,NA),
@@ -214,8 +214,8 @@ legend(x = "bottomright", cex = 1.2,          # Position
 logitsenss<-log(senss/(1-senss))
 logitfpfs<-log(fpfs/(1-fpfs))
 
-plot(logitfpfs, logitsenss,col="white",  pch = 20,xlim=c(-4,3),ylim=c(1,5),
-     cex = cex, cex.lab = cex, xlab = "1-Specificity (FPF)", ylab = "Sensitivity",
+plot(logitfpfs, logitsenss,col="white",  pch = 20,xlim=c(-5,5),ylim=c(-5,5),
+     cex = cex, cex.lab = cex, xlab = "Logit(FPF)", ylab = "Logit(Sensitivity)",
      axes = T,frame.plot =FALSE)
 
 
@@ -225,7 +225,8 @@ symbols(x=logitfpfs, y=logitsenss, circles=wnos, inches=1/7,
 points(results_biv$mean1[1], results_biv$mean0[1], col ="red", pch = 17,cex=cex)
 lines(logitellipse1[,2],logitellipse1[,1], lty = 2, lwd = 2, col = "red") 
 lines(logitellipse2[,2],logitellipse2[,1], lty = 2, lwd = 2, col = "blue") 
-legend(x = "topleft", cex = 1.2,          # Position
+lines(-5:5,-5:5,lty=3,type="l")
+legend(x = "bottomright", cex = 1.2,          # Position
        legend = c("Observed (logit-TPF, logit-FPF)","Summary (m1,m2)", "95% credible ellipse","95% prediction ellipse"),  # Legend texts
        lty = c(NA,NA,2,2),           # Line types
        col = c(mycol, "red","red","blue"), # Line colors
@@ -253,12 +254,12 @@ for (i in 1:nsims){
 sumppv<-sumnpv<-matrix(NA,ncol=3,nrow=length(prev))
 for(j in 1:length(prev)){
   sumppv[j,]<-quantile(ppv[,j],c(0.5,0.025,0.975))
-  sumnpv[j,]<-quantile(npv[,j],c(0.5,0.025,0.975))
+  sumnpv[j,]<-1 - quantile(npv[,j],c(0.5,0.025,0.975))
 }
 
 #create the plot
 svg("ppv.svg", width = 5, height = 5, pointsize = 10) 
-plot(prev,sumppv[,1],type = "l",col="red",lwd=2,xlab = "Prevalence",ylab="Predictive value",frame.plot =FALSE,cex.lab=1.2, cex.axis=1)
+plot(prev,sumppv[,1],type = "l",col="red",lwd=2,xlab = "Pre-test probability",ylab="Post-test probability",frame.plot =FALSE,cex.lab=1.2, cex.axis=1)
 lines(prev,sumnpv[,1],type = "l",col="blue",lwd=2)
 
 m<-length(prev)
@@ -274,12 +275,16 @@ coltp<-"red"
              col=adjustcolor(colfp, alpha.f = 0.2),
              border = NA, xlab = "", ylab = "", main = "",ylim = c(0,1))
     
-    legend(0.4,0.2,          # Position
-           legend = c("Positive PV", "Negative PV"),  # Legend texts
-           lty = c(1, 1),           # Line types
-           col = c("red", "blue"), # Line colors
-           pch = c( NA, NA),
-           lwd = c(2,2),bty = "n")   
+    legend(0,1,          # Position
+           legend = c("Prevalence or pre-test probability", "Positive test", "Negative test"),  # Legend texts
+           lty = c(3, 1, 1),           # Line types
+           col = c("black", "red", "blue"), # Line colors
+           pch = c(NA, NA, NA),
+           lwd = c(3, 2,2),bty = "n")   
+    
+    lines(c(0,1), c(0,1), lty = 3, lwd = 3)
+    
+    
     dev.off()
     
-## program ends
+    ## program ends
