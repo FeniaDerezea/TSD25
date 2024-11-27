@@ -26,8 +26,8 @@ dat<-list(r=r,N=N)
 data.names<-c(names(dat) ,'ns')
 
 #create vector with names of parameters to monitor
-#parameter.names <- c( 'theta','rho','sd','sumtpr','sumfpr','spec','Theta','delta','beta','predtpr','predfpf','logitsp','deltasp','Lambda','vartheta','varalpha')
 parameter.names <- c( 'predlambda','theta','rho','sd','sumtpf','sumfpf','delta','spec','Theta','beta','predtpr','predfpf','Lambda','vartheta','varalpha','sdtheta','sdalpha')
+
 
 # defining the directory of WinBUGS, this should be replaced with the full path to the directory WinBUGS is located
 winbugs.dir <- "C:/My_winbugs_directory/WinBUGS14/"
@@ -48,7 +48,7 @@ inits1<-list(
 set.seed(455)
 #run model through WinBUGS and safe output
 #model1.txt contains the WinBUGS code for the bivariate model and should be saved in your current working directory
-model2.sim <- bugs( data.names, inits1, model.file = "model1.txt", parameters = parameter.names,
+model2.sim <- bugs( data.names, inits1, model.file = "model_bivariate.txt", parameters = parameter.names,
                     n.chains = n.chain, n.iter = n.iters, n.burnin=n.burn, n.thin=n.th,  bugs.directory = winbugs.dir, debug=FALSE)
 
 # print model summary rounded to 3 decimals
@@ -85,7 +85,7 @@ results_biv <- data.frame(
   
 ) 
 #the plot will be saved in the working directory unless otherwise specified within the svg command
-svg("roc_logit_dent.svg", width = 14, height = 7, pointsize = 14) 
+svg("roc_logit_dent2.svg", width = 14, height = 7, pointsize = 14) 
 par(mfrow=c(1,2))
 cex <- 1.2
 plot(fpfs, senss,col="white",  pch = 20, xlim = c(0,1), ylim = c(0,1),
@@ -194,7 +194,7 @@ colrc<-"blue"
   points(results_biv$summfpr[1], results_biv$summtpr[1], col ="red", pch = 17,cex=cex)
   
   legend(x = "bottomright", cex = 1,          # Position
-         legend = c("Observed (TPF, FPF)","Summary (TPF,FPF)", "95% credible ellipse","95% prediction ellipse","SROC curve"),  # Legend texts
+         legend = c("Observed (TPF, FPF)","Summary (TPF,FPF)", "95% credible region","95% prediction region","SROC curve"),  # Legend texts
          lty = c(NA,NA,2,2,1),           # Line types
          col = c(mycol, "red","red","blue","cornflowerblue"), # Line colors
          pch = c(20,17, NA,NA,NA),
@@ -206,7 +206,7 @@ colrc<-"blue"
   logitsenss<-log(senss/(1-senss))
   logitfpfs<-log(fpfs/(1-fpfs))
   
-  plot(logitfpfs, logitsenss,col="white",  pch = 20,xlim=c(-7,3),ylim=c(-6,4),
+  plot(logitfpfs, logitsenss,col="white",  pch = 20,xlim=c(-7,5),ylim=c(-7,5),
        cex = cex, cex.lab = cex, xlab = "logit-FPF", ylab = "logit-Sensitivity",
        axes = T,frame.plot =FALSE)
   
@@ -235,7 +235,7 @@ colrc<-"blue"
            col=adjustcolor(colrc, alpha.f = 0.07),
            border = NA, xlab = "", ylab = "", main = "",ylim = c(0,1)) 
   points(results_biv$mean1[1], results_biv$mean0[1], col ="red", pch = 17,cex=cex)
-  
+  lines(-7:5,-7:5,lty=3,type="l")
   legend(x = "bottomright", cex = 1,          # Position
          legend = c("Observed (logit-TPF, logit-FPF)","Summary (m1,m2)", "95% credible ellipse","95% prediction ellipse","SROC line"),  # Legend texts
          lty = c(NA,NA,2,2,1),           # Line types
