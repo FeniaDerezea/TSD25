@@ -250,17 +250,17 @@ for (i in 1:nsims){
     npv[i,j] <- ((1-prev[j])*spec[i])/(((1-prev[j])*spec[i])+(prev[j]*(1-sumtpr[i])))  
   }
 }
-#median  ppv and npv values and 95% CrIs
-sumppv<-sumnpv<-matrix(NA,ncol=3,nrow=length(prev))
+#median  ppv and complementary npv values with 95% CrIs
+sumppv<-sumcomplnpv<-matrix(NA,ncol=3,nrow=length(prev))
 for(j in 1:length(prev)){
   sumppv[j,]<-quantile(ppv[,j],c(0.5,0.025,0.975))
-  sumnpv[j,]<-1 - quantile(npv[,j],c(0.5,0.025,0.975))
+  sumcomplnpv[j,]<-1 - quantile(npv[,j],c(0.5,0.025,0.975))
 }
 
 #create the plot
 svg("ppv.svg", width = 5, height = 5, pointsize = 10) 
 plot(prev,sumppv[,1],type = "l",col="red",lwd=2,xlab = "Pre-test probability",ylab="Post-test probability",frame.plot =FALSE,cex.lab=1.2, cex.axis=1)
-lines(prev,sumnpv[,1],type = "l",col="blue",lwd=2)
+lines(prev,sumcomplnpv[,1],type = "l",col="blue",lwd=2)
 
 m<-length(prev)
 coltp<-"red"
@@ -271,7 +271,7 @@ coltp<-"red"
              border = NA, xlab = "", ylab = "", main = "",ylim = c(0,1))
     
     polygon( c(prev[1:m], rev(prev[1:m])),
-             c(sumnpv[,2], rev(sumnpv[,3])),
+             c(sumcomplnpv[,2], rev(sumcomplnpv[,3])),
              col=adjustcolor(colfp, alpha.f = 0.2),
              border = NA, xlab = "", ylab = "", main = "",ylim = c(0,1))
     
