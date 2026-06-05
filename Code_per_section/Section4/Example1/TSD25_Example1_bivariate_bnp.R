@@ -35,9 +35,9 @@ n.burn=5000
 n.th=3
 #create list containing initial value for 3 chains
 inits1<-list(  
-  list(theta =c(0,-1) , sd=c(1,1) ),
-  list(theta =c(1,1) , sd=c(0.6,0.6) ),
-  list(theta =c(0.5,0.5) , sd=c(1.5,1.5) )
+  list(theta =c(0,-1) , sd=c(1,1), rho=0.5 ),
+  list(theta =c(1,1) , sd=c(0.6,0.6), rho=0.1 ),
+  list(theta =c(0.5,0.5) , sd=c(1.5,1.5),rho=0.8 )
 )
 
 #run model through WinBUGS and safe output
