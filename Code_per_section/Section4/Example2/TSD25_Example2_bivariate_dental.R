@@ -85,8 +85,8 @@ results_biv <- data.frame(
   
 ) 
 #the plot will be saved in the working directory unless otherwise specified within the svg command
-svg("roc_logit_dent2.svg", width = 14, height = 7, pointsize = 14) 
-par(mfrow=c(1,2))
+svg("roc_prob_dent2.svg", width = 7, height = 7, pointsize = 14) 
+#par(mfrow=c(1,2))
 cex <- 1.2
 plot(fpfs, senss,col="white",  pch = 20, xlim = c(0,1), ylim = c(0,1),
      cex = cex, cex.lab = cex, xlab = "1-Specificity (FPF)", ylab = "Sensitivity",
@@ -199,10 +199,12 @@ colrc<-"blue"
          col = c(mycol, "red","red","blue","cornflowerblue"), # Line colors
          pch = c(20,17, NA,NA,NA),
          lwd = c(NA,NA,2,2,2),bty = "n")   
+dev.off()
 
-####same plot on logit scale #####
+####same plot on logit scale (not necessary for reporting)#####
   #calculate logit-sens and logit-spec for each study
-  
+svg("roc_logit_dent2.svg", width = 7, height = 7, pointsize = 14)
+
   logitsenss<-log(senss/(1-senss))
   logitfpfs<-log(fpfs/(1-fpfs))
   
