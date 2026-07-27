@@ -130,7 +130,7 @@ r<-cor(mcmc1,mcmc2)
 sens<-median(model1.sim$sims.list$sumtpf)
 fpf<-median(model1.sim$sims.list$sumfpf)
 
-#collect reqired values for the plot in the same object
+#collect required values for the plot in the same object
 results_biv <- data.frame(
   mean0 = c( median(mcmc1) ), #logit sens
   mean1 =c( median(mcmc2)),    #logit spec
@@ -144,8 +144,8 @@ results_biv <- data.frame(
   
 )
 #the plot will be saved in the working directory unless otherwise specified within the svg command
-svg("roc_logit2.svg", width = 14, height = 7, pointsize = 14) 
-par(mfrow=c(1,2))
+svg("roc_prob.svg", width = 7, height = 7, pointsize = 14) 
+#par(mfrow=c(1,2))
 cex <- 1.2
 plot(fpfs, senss,col="white",  pch = 20, xlim = c(0,1), ylim = c(0,1),
      cex = cex, cex.lab = cex, xlab = "1-Specificity (FPF)", ylab = "Sensitivity",
@@ -208,9 +208,11 @@ legend(x = "bottomright", cex = 1.2,          # Position
        pch = c(20,17, NA,NA),
        lwd = c(NA,NA,2,2),bty = "n")   
 
-## same plot logit scale 
-#calculate logit-sens and logit-spec for each study
+dev.off()
 
+## same plot logit scale (not necessary to report - used as a tool for the researcher in order to get a better understanding of the data )
+#calculate logit-sens and logit-spec for each study
+svg("roc_logit.svg", width = 7, height = 7, pointsize = 14) 
 logitsenss<-log(senss/(1-senss))
 logitfpfs<-log(fpfs/(1-fpfs))
 
