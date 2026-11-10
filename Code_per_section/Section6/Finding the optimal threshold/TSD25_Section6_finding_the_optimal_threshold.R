@@ -121,7 +121,7 @@ winbugs.dir <- "C:/My_winbugs_directory/WinBUGS14/"
 ##Run the model
 #model_log.txt contains the WinBUGS code for the multiple thresholds model and should be saved in your current working directory
 set.seed(213)
-model1.sim <- bugs(data.names, inits1, model.file = "model_log.txt", parameters = mymonitoredparamslist ,
+model1.sim <- bugs(data.names, inits1, model.file = "model_log_restr.txt", parameters = mymonitoredparamslist ,
                    n.chains = 3, n.iter = 90000, n.burnin=30000, n.thin=3,  bugs.directory = winbugs.dir, debug=FALSE)
 
 ######## save posterior samples ##################################################
