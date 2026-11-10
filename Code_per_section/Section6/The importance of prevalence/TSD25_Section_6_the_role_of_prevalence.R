@@ -72,7 +72,7 @@ inits1<-list(
 
 #run model through WinBUGS and save output
 #model1.txt contains the WinBUGS code for the bivariate model and should be saved in your current working directory
-model1.sim <- bugs( data.names, inits1, model.file = "model1.txt", parameters = parameter.names,
+model1.sim <- bugs( data.names, inits1, model.file = "model_bivariate.txt", parameters = parameter.names,
                     n.chains = n.chain, n.iter = n.iters, n.burnin=n.burn, n.thin=n.th,  bugs.directory = winbugs.dir, debug=FALSE)
 
 # print model summary rounded to 2 decimals
